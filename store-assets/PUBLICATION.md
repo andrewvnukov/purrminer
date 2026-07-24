@@ -88,6 +88,8 @@ A simple "tap → coins → upgrade → deeper" loop that's easy to pick up and 
 - Игра: `Котокопы/index.html`
 - Билд-архив: `Котокопы/purrminer-yandex.zip`
 - Ассеты: `Котокопы/store-assets/`
+- **Превью для плейтеста (GitHub Pages): https://andrewvnukov.github.io/purrminer/**
+- Репозиторий: https://github.com/andrewvnukov/purrminer
 
 ---
 
