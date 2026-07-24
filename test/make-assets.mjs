@@ -16,7 +16,7 @@ const cardUrl = 'file://' + resolve(root, 'store', 'card.html');
 // ---- CONFIG ----
 const CONFIG = {
   titleRu: 'Котокопы', titleEn: 'Purrminer',
-  subRu: 'Копай, продавай, расти!', subEn: 'Dig, sell, grow!',
+  subRu: 'Штольни, лифт и коты-шахтёры!', subEn: 'Tunnels, a lift and miner cats!',
   // GAME: кот-шахтёр с киркой, векторная SVG (viewBox 0 0 100 100), плоские заливки + чернильный контур
   heroSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
     + '<ellipse cx="50" cy="73" rx="27" ry="20" fill="#E8A96B" stroke="#4A3527" stroke-width="4"/>'
@@ -38,18 +38,28 @@ const CONFIG = {
   accent: '#F2B341', bg: '#7A6650', ink: '#4A3527',
   // характерные экраны: [имя файла, скрипт подготовки состояния через хуки]
   shots: [
-    ['d1-start',    async p => { await bulkTap(p, 10); await p.click('#tapBtn'); }],
-    ['d2-cart',     async p => { await bulkTap(p, 24); await p.click('#tapBtn'); }],
-    ['d3-helper',   async p => { await bulkTap(p, 600); await bulkUp(p, 3); await bulkTap(p, 40); await p.click('#tapBtn'); }],
-    ['d4-progress', async p => { for (let r=0;r<4;r++){ await bulkTap(p, 250); await bulkUp(p, 1); } await p.click('#tapBtn'); }],
-    ['d5-deep',     async p => { for (let r=0;r<8;r++){ await bulkTap(p, 250); await bulkUp(p, 1); } await p.click('#tapBtn'); }],
+    ['d1-start',     async p => { await bulkTap(p, 10); await p.click('#tapBtn'); }],
+    ['d2-firstcat',  async p => { await bulkTap(p, 70); await p.click('#actionBtn'); await bulkTap(p, 5); }],
+    ['d3-tunnels',   async p => { await progress(p, 2); }],
+    ['d4-upgrades',  async p => { await progress(p, 3); await p.click('#upBtn2'); }],
+    ['d5-deep',      async p => { await progress(p, 5); }],
   ],
 };
 
 const browser = await chromium.launch();
 
 async function bulkTap(p, n) { await p.evaluate(n => { const b=document.getElementById('tapBtn'); for (let i=0;i<n;i++) b.click(); }, n); }
-async function bulkUp(p, n)  { await p.evaluate(n => { const b=document.getElementById('upBtn');  for (let i=0;i<n;i++) b.click(); }, n); }
+// продвинуть экономику: чередуем тапы и клики по контекстной кнопке (найм кота / открытие штольни),
+// пока не откроется unlockedCount штолен — так же, как играл бы реальный игрок
+async function progress(p, unlockedCount) {
+  for (let round = 0; round < 60; round++) {
+    const state = JSON.parse(await p.evaluate(() => window.render_game_to_text()));
+    if (state.unlockedCount >= unlockedCount && state.tunnels[unlockedCount - 1].hasCat) break;
+    await bulkTap(p, 260);
+    await p.evaluate(() => { const b = document.getElementById('actionBtn'); if (!b.disabled) b.click(); });
+  }
+  await bulkTap(p, 6);
+}
 
 async function shot(url, w, h, file, prep, locale) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1, locale });

@@ -45,20 +45,43 @@
   .chip .v{font-weight:900;font-size:17px;line-height:1;white-space:nowrap}
   .chip .l{font-size:10px;font-weight:800;color:var(--ink-soft);letter-spacing:.3px}
   .spacer{flex:1}
-  .giftbtn{pointer-events:auto;background:var(--gold);border:2.5px solid var(--line);border-radius:50%;
-        width:44px;height:44px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:20px;
+  .circlebtn{pointer-events:auto;background:var(--gold);border:2.5px solid var(--line);border-radius:50%;
+        width:44px;height:44px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
         cursor:pointer;box-shadow:0 3px 0 rgba(74,53,39,.35);transition:transform .08s,box-shadow .08s}
-  .giftbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(74,53,39,.35)}
-  .bottom{display:flex;gap:10px;pointer-events:auto}
-  .abtn{flex:1;background:var(--paper);border:2.5px solid var(--line);border-radius:16px;padding:12px;
-        font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 3px 0 rgba(74,53,39,.35);
-        transition:transform .08s,box-shadow .08s;color:var(--ink)}
+  .circlebtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(74,53,39,.35)}
+  #upBtn2{background:var(--lav)}
+  .bottom{display:flex;gap:8px;pointer-events:auto}
+  .abtn{flex:1;background:var(--paper);border:2.5px solid var(--line);border-radius:16px;padding:11px 6px;
+        font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 3px 0 rgba(74,53,39,.35);
+        transition:transform .08s,box-shadow .08s;color:var(--ink);line-height:1.25}
   .abtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(74,53,39,.35)}
+  .abtn .sub{display:block;font-size:11px;font-weight:800;opacity:.85;margin-top:1px}
   .abtn.main{background:var(--accent);color:#fff;border-color:var(--accent-deep)}
-  #toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);
+  .abtn.ctx{background:var(--mint);color:#fff;border-color:#5E9D6C}
+  .abtn.ctx:disabled{opacity:.5;background:var(--paper);color:var(--ink-soft);border-color:var(--line)}
+  #toast{position:absolute;left:50%;bottom:104px;transform:translateX(-50%) translateY(20px);
          background:var(--ink);color:#fff;font-weight:800;font-size:14px;padding:9px 16px;border-radius:99px;
-         opacity:0;transition:.25s;pointer-events:none;max-width:80vw;text-align:center}
+         opacity:0;transition:.25s;pointer-events:none;max-width:80vw;text-align:center;z-index:5}
   #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* ── Окно улучшений: отдельная модалка поверх игры (не тот же экран) ── */
+  #upModal{position:fixed;inset:0;background:rgba(20,14,8,.55);display:none;align-items:center;justify-content:center;
+        z-index:20;pointer-events:auto;padding:16px}
+  #upModal.on{display:flex}
+  .panel{background:var(--paper);border:3px solid var(--line);border-radius:22px;padding:16px;
+        width:min(94vw,440px);max-height:82vh;overflow:auto;box-shadow:0 8px 0 rgba(0,0,0,.3)}
+  .panel h2{font-size:19px;font-weight:900;margin-bottom:4px}
+  .panel .hint{font-size:12px;color:var(--ink-soft);font-weight:700;margin-bottom:12px}
+  .upRow{display:flex;align-items:center;gap:10px;background:rgba(90,64,48,.08);
+        border:2px solid var(--line);border-radius:16px;padding:10px;margin-bottom:9px}
+  .upRow .ic{flex:0 0 auto;width:38px;height:38px;display:flex;align-items:center;justify-content:center}
+  .upRow .info{flex:1;min-width:0}
+  .upRow .name{font-weight:900;font-size:14px}
+  .upRow .lvl{font-size:11px;color:var(--ink-soft);font-weight:800;margin-top:1px}
+  .upRow button{flex:0 0 auto;background:var(--accent);color:#fff;border:2px solid var(--accent-deep);
+        border-radius:12px;padding:9px 12px;font-weight:900;font-size:12.5px;cursor:pointer;white-space:nowrap}
+  .upRow button:disabled{background:#C9BBA6;border-color:#A99880;cursor:default}
+  #closeUp{margin-top:4px;width:100%;background:var(--paper);border:2.5px solid var(--line);
+        border-radius:14px;padding:11px;font-weight:900;cursor:pointer;font-size:14px}
 </style>
 </head>
 <body oncontextmenu="return false">
@@ -67,9 +90,16 @@
   <div class="top">
     <div class="chip"><span class="v" id="coinsV">0</span><span class="l" id="coinsL">МОНЕТЫ</span></div>
     <div class="chip"><span class="v" id="ipsV">0/с</span><span class="l" id="ipsL">ДОХОД</span></div>
-    <div class="chip"><span class="v" id="depthV">—</span><span class="l" id="depthL">ГЛУБИНА</span></div>
+    <div class="chip"><span class="v" id="tunnelsV">1/6</span><span class="l" id="tunnelsL">ШТОЛЬНИ</span></div>
     <div class="spacer"></div>
-    <button class="giftbtn" id="giftBtn" style="display:none" title="Ежедневный подарок">
+    <button class="circlebtn" id="upBtn2" title="Улучшения">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="3.4" fill="#FFF3DD" stroke="#4A3527" stroke-width="1.8"/>
+        <path d="M12 3.2v2.4M12 18.4v2.4M3.2 12h2.4M18.4 12h2.4M5.9 5.9l1.7 1.7M16.4 16.4l1.7 1.7M18.1 5.9l-1.7 1.7M7.6 16.4l-1.7 1.7"
+              stroke="#4A3527" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button class="circlebtn" id="giftBtn" style="display:none" title="Ежедневный подарок">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="4" y="10" width="16" height="10" rx="1.5" fill="#FFF3DD" stroke="#4A3527" stroke-width="1.8"/>
         <rect x="4" y="10" width="16" height="4" fill="#F2B341" stroke="#4A3527" stroke-width="1.8"/>
@@ -81,20 +111,32 @@
   </div>
   <div class="spacer"></div>
   <div class="bottom">
+    <button class="abtn ctx" id="actionBtn">Нанять кота<span class="sub" id="actionSub">60</span></button>
     <button class="abtn main" id="tapBtn">Копать</button>
-    <button class="abtn" id="upBtn">Улучшить</button>
   </div>
 </div>
 <div id="toast"></div>
+
+<!-- ── Окно улучшений (отдельная модалка, не тот же экран, что игра) ── -->
+<div id="upModal">
+  <div class="panel">
+    <h2 id="upTitle">Улучшения</h2>
+    <div class="hint" id="upHint">Действуют на все штольни сразу</div>
+    <div id="upList"></div>
+    <button id="closeUp">Закрыть</button>
+  </div>
+</div>
+
 <script src="sfx.js"></script>
 <script>
 'use strict';
 // ============================================================
-//  Котокопы / Purrminer — idle/tycoon про кота-шахтёра
-//  Петля: тап киркой -> руда и монеты сразу -> руда копится в
-//  вагонетке -> полная вагонетка даёт бонус и открывает глубину
-//  -> апгрейд кирки сильнее бьёт, каждый 3-й найм помощника
-//  добавляет пассивный доход -> глубже шахта -> дороже руда.
+//  Котокопы / Purrminer — горизонтальная шахта с лифтом.
+//  Петля: тап в открытой штольне -> золото сразу в карман ->
+//  накопил -> найми кота в штольню (он копает сам, пассивно) ->
+//  накопил ещё -> открой следующую, более глубокую и дорогую
+//  штольню -> и так далее. Отдельное окно апгрейдов усиливает
+//  тап и котов глобально.
 // ============================================================
 const SAVE_KEY = "purrminer_save_v1";       // GAME: уникальный ключ сейва на игру
 const LB_NAME  = "purrminer_lifetime_coins"; // техимя лидерборда в консоли
@@ -108,60 +150,86 @@ function lang(){
 }
 const STR = {
   coins:{ru:"МОНЕТЫ",en:"COINS"}, income:{ru:"ДОХОД",en:"INCOME"},
-  depthL:{ru:"ГЛУБИНА",en:"DEPTH"},
+  tunnelsL:{ru:"ШТОЛЬНИ",en:"TUNNELS"},
   action:{ru:"Копать",en:"Dig"},
-  upgrade:{ru:"Улучшить",en:"Upgrade"},
+  hire:{ru:"Нанять кота",en:"Hire cat"},
+  unlockTunnel:{ru:"Открыть штольню",en:"Unlock tunnel"},
+  allDone:{ru:"Всё нанято",en:"All hired"},
   need:{ru:"Не хватает монет",en:"Not enough coins"},
-  upgraded:{ru:"Кирка улучшена!",en:"Pickaxe upgraded!"},
-  helperJoined:{ru:"Кот-помощник присоединился!",en:"A helper cat joined!"},
-  newDepth:{ru:"Новая глубина открыта: ",en:"New depth unlocked: "},
-  cartFull:{ru:"Вагонетка разгружена! +",en:"Cart delivered! +"},
+  locked:{ru:"Штольня заперта",en:"Tunnel locked"},
+  helperJoined:{ru:"Кот-шахтёр присоединился!",en:"A miner cat joined!"},
+  newTunnel:{ru:"Открыта штольня: ",en:"Tunnel unlocked: "},
   giftReady:{ru:"Загляни за подарком!",en:"Daily gift is ready!"},
+  upTitle:{ru:"Улучшения",en:"Upgrades"},
+  upHint:{ru:"Действуют сразу на все штольни",en:"Apply to every tunnel at once"},
+  upTap:{ru:"Сила тапа",en:"Tap power"},
+  upTapD:{ru:"Больше золота за ручной тап",en:"More gold per manual tap"},
+  upCat:{ru:"Скорость котов",en:"Cat speed"},
+  upCatD:{ru:"Коты копают быстрее сами",en:"Cats mine faster on their own"},
+  upYield:{ru:"Богатство жил",en:"Vein richness"},
+  upYieldD:{ru:"Больше золота с любой руды",en:"More gold from every ore"},
+  lvl:{ru:"Уровень",en:"Level"},
+  buy:{ru:"Купить",en:"Buy"},
+  close:{ru:"Закрыть",en:"Close"},
+  upgraded:{ru:"Улучшено!",en:"Upgraded!"},
 };
 const T = k => (STR[k]||{})[lang()] || (STR[k]||{}).ru || k;
 
-// GAME: 6 ярусов шахты — тема/руда/цена/цвет забоя, разблокируются по lifetime-доходу
-// color — цвет руды/прожилок (векторные кристаллы), bg — базовый камень яруса
-const DEPTHS = [
-  { name:{ru:"Погреб",   en:"Cellar"},       ore:{ru:"Камешки",  en:"Pebbles"},  color:"#B9AC94", value:1,   bg:"#9C8768", thr:0 },
-  { name:{ru:"Штольня",  en:"Tunnel"},       ore:{ru:"Медь",     en:"Copper"},   color:"#C97A46", value:3,   bg:"#8A6A4E", thr:300 },
-  { name:{ru:"Пещера",   en:"Cavern"},       ore:{ru:"Серебро",  en:"Silver"},   color:"#D9DCE0", value:8,   bg:"#6B5646", thr:1200 },
-  { name:{ru:"Разлом",   en:"Rift"},         ore:{ru:"Золото",   en:"Gold"},     color:"#F2C94C", value:20,  bg:"#4F3F34", thr:4000 },
-  { name:{ru:"Кристальный зал", en:"Crystal Hall"}, ore:{ru:"Изумруд", en:"Emerald"}, color:"#3FAE5D", value:50, bg:"#3A2F28", thr:12000 },
-  { name:{ru:"Бездна",   en:"Abyss"},        ore:{ru:"Сапфир",   en:"Sapphire"}, color:"#3B6FD1", value:120, bg:"#241D19", thr:30000 },
+// GAME: 6 штолен шахты — тема/руда/цена/цвет забоя, открываются по порядку за золото
+const TUNNELS = [
+  { name:{ru:"Штольня 1",en:"Tunnel 1"}, ore:{ru:"Камешки",en:"Pebbles"}, color:"#B9AC94", bg:"#9C8768", value:1,   unlockCost:0,     catCost:60 },
+  { name:{ru:"Штольня 2",en:"Tunnel 2"}, ore:{ru:"Медь",    en:"Copper"}, color:"#C97A46", bg:"#8A6A4E", value:3,   unlockCost:200,   catCost:350 },
+  { name:{ru:"Штольня 3",en:"Tunnel 3"}, ore:{ru:"Серебро", en:"Silver"}, color:"#D9DCE0", bg:"#6B5646", value:8,   unlockCost:900,   catCost:1500 },
+  { name:{ru:"Штольня 4",en:"Tunnel 4"}, ore:{ru:"Золото",  en:"Gold"},   color:"#F2C94C", bg:"#4F3F34", value:20,  unlockCost:3500,  catCost:6000 },
+  { name:{ru:"Штольня 5",en:"Tunnel 5"}, ore:{ru:"Изумруд", en:"Emerald"},color:"#3FAE5D", bg:"#3A2F28", value:50,  unlockCost:12000, catCost:20000 },
+  { name:{ru:"Штольня 6",en:"Tunnel 6"}, ore:{ru:"Сапфир",  en:"Sapphire"},color:"#3B6FD1", bg:"#241D19", value:120, unlockCost:40000, catCost:65000 },
 ];
 
 // ---------- Состояние ----------
 function fresh(){
   return {
-    v:1,
-    coins:0,          // GAME: текущие монеты
-    lifetime:0,       // GAME: монет заработано за всю игру (гейт глубины)
-    ore:0,            // GAME: руда в текущей вагонетке
-    pickLvl:1,        // GAME: уровень кирки (сила удара)
-    liftLvl:0,         // GAME: число помощников (пассивная добыча)
-    depth:0,          // GAME: последняя показанная глубина (для тоста открытия)
-    gems:[0,0,0,0,0,0], // GAME: коллекция — сколько вагонеток каждой руды сдано
-    lastGiftDay:"",    // GAME: дата последнего ежедневного подарка
+    v:2,
+    coins:0,            // GAME: текущее золото
+    lifetime:0,          // GAME: золота заработано за всю игру (для лидерборда/рекламы)
+    tunnels: TUNNELS.map((t,i)=>({ unlocked:i===0, hasCat:false })), // GAME: по штольне
+    selected:0,          // GAME: какую штольню тапает игрок / куда едет лифт
+    U:{ tap:1, catSpeed:1, yield:1 }, // GAME: глобальные апгрейды (окно улучшений)
+    lastGiftDay:"",      // GAME: дата последнего ежедневного подарка
     time:Date.now()
   };
 }
 let S = fresh();
 
 // ---------- Экономика ----------
-// GAME: формулы шахты
-function depthIndex(){
-  let idx=0;
-  for(let i=DEPTHS.length-1;i>=0;i--){ if(S.lifetime>=DEPTHS[i].thr){ idx=i; break; } }
-  return idx;
+// GAME: формулы шахты — тап и коты дают золото = базовая_ставка * ценность_руды * множитель_апгрейдов
+const tapGainU   = () => S.U.tap;
+const catRateU   = () => 1 + (S.U.catSpeed-1)*0.6;
+const yieldMult  = () => 1 + (S.U.yield-1)*0.12;
+const goldPerTap = idx => Math.max(1, Math.round(tapGainU()*TUNNELS[idx].value*yieldMult()*10)/10);
+const catGoldPerSec = idx => Math.round(catRateU()*TUNNELS[idx].value*yieldMult()*10)/10;
+function ips(){
+  let sum=0;
+  for(let i=0;i<TUNNELS.length;i++) if(S.tunnels[i].unlocked && S.tunnels[i].hasCat) sum+=catGoldPerSec(i);
+  return Math.round(sum*10)/10;
 }
-const curDepth   = () => DEPTHS[depthIndex()];
-const oreValue   = () => curDepth().value;
-const cartCap    = () => 20 + depthIndex()*12;
-const tapGain    = () => S.pickLvl;                          // руды за удар
-const liftRate   = () => S.liftLvl*0.5;                      // руды/сек от помощников
-const ips        = () => Math.round(liftRate()*oreValue()*10)/10; // монет/сек для HUD
-const upCost     = () => Math.floor(15*Math.pow(1.45,S.pickLvl-1));
+const upCost = key => {
+  if(key==="tap")      return Math.floor(25*Math.pow(1.5, S.U.tap-1));
+  if(key==="catSpeed") return Math.floor(80*Math.pow(1.55,S.U.catSpeed-1));
+  if(key==="yield")    return Math.floor(150*Math.pow(1.6, S.U.yield-1));
+  return Infinity;
+};
+function firstLockedIdx(){ for(let i=0;i<TUNNELS.length;i++) if(!S.tunnels[i].unlocked) return i; return -1; }
+function unlockedCount(){ return S.tunnels.filter(t=>t.unlocked).length; }
+// GAME: контекст кнопки-действия — сначала предложи нанять кота в выбранную штольню,
+// когда там уже есть кот — предложи открыть следующую по порядку штольню
+function actionCtx(){
+  const sel=S.selected;
+  if(S.tunnels[sel] && S.tunnels[sel].unlocked && !S.tunnels[sel].hasCat)
+    return { type:"hire", idx:sel, cost:TUNNELS[sel].catCost };
+  const idx=firstLockedIdx();
+  if(idx>=0) return { type:"unlock", idx, cost:TUNNELS[idx].unlockCost };
+  return { type:"none" };
+}
 
 // ---------- Сейвы (throttle + облако Яндекса, фолбэк на localStorage) ----------
 function persist(force){
@@ -174,8 +242,16 @@ function persist(force){
 }
 function restore(raw){
   if(!raw) return;
-  try{ const d=(typeof raw==="string")?JSON.parse(raw):(raw.save?JSON.parse(raw.save):raw);
-       if(d&&typeof d==="object") S=Object.assign(fresh(),d); }catch(e){}
+  try{
+    const d=(typeof raw==="string")?JSON.parse(raw):(raw.save?JSON.parse(raw.save):raw);
+    if(d&&typeof d==="object"){
+      const f=fresh();
+      S=Object.assign(f,d);
+      if(!Array.isArray(S.tunnels)||S.tunnels.length!==TUNNELS.length) S.tunnels=f.tunnels;
+      if(!S.U||typeof S.U.tap!=="number") S.U=f.U;
+      if(typeof S.selected!=="number"||S.selected<0||S.selected>=TUNNELS.length) S.selected=0;
+    }
+  }catch(e){}
 }
 
 // ---------- Реклама (no-op вне платформы; награда всегда выдаётся) ----------
@@ -202,68 +278,113 @@ function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth(
 function giftAvailable(){ return S.lastGiftDay!==todayStr(); }
 function claimGift(){
   if(!giftAvailable()) return;
-  const bonus=Math.max(30, Math.floor(upCost()*0.6));
+  const bonus=Math.max(25, Math.floor(upCost("tap")*0.6));
   S.coins+=bonus; S.lifetime+=bonus; S.lastGiftDay=todayStr();
   toast((lang()==="ru"?"Подарок: +":"Gift: +")+fmt(bonus));
-  refreshHud(); persist(true); checkDepthUp(); sfx("coin");
+  refreshHud(); persist(true); sfx("coin");
 }
 
 // ---------- HUD ----------
 const $ = id => document.getElementById(id);
 const fmt = n => n>=1e6 ? (n/1e6).toFixed(1)+"M" : n>=1e3 ? (n/1e3).toFixed(1)+"K" : Math.floor(n).toString();
+const fmtRate = n => n>=1e6 ? (n/1e6).toFixed(1)+"M" : n>=1e3 ? (n/1e3).toFixed(1)+"K" : n>=10 ? Math.floor(n).toString() : (Math.round(n*10)/10).toString();
 function refreshHud(){
   $("coinsV").textContent = fmt(S.coins);
-  $("ipsV").textContent   = fmt(ips())+"/"+(lang()==="ru"?"с":"s");
+  $("ipsV").textContent   = fmtRate(ips())+"/"+(lang()==="ru"?"с":"s");
   $("coinsL").textContent = T("coins");
   $("ipsL").textContent   = T("income");
-  $("depthV").textContent = curDepth().name[lang()];
-  $("depthL").textContent = T("depthL");
+  $("tunnelsV").textContent = unlockedCount()+"/"+TUNNELS.length;
+  $("tunnelsL").textContent = T("tunnelsL");
   $("tapBtn").textContent = T("action");
-  $("upBtn").textContent  = T("upgrade")+" ("+fmt(upCost())+")";
   $("giftBtn").style.display = giftAvailable() ? "flex" : "none";
+
+  const ctx=actionCtx(), btn=$("actionBtn"), sub=$("actionSub");
+  if(ctx.type==="hire"){
+    btn.disabled=false; btn.firstChild.textContent=T("hire");
+    sub.textContent=fmt(ctx.cost);
+  } else if(ctx.type==="unlock"){
+    btn.disabled=false; btn.firstChild.textContent=T("unlockTunnel");
+    sub.textContent=TUNNELS[ctx.idx].name[lang()]+" · "+fmt(ctx.cost);
+  } else {
+    btn.disabled=true; btn.firstChild.textContent=T("allDone"); sub.textContent="";
+  }
+  if(upModalOpen) renderUpgradesModal();
 }
 let toastT;
 function toast(msg){ const el=$("toast"); el.textContent=msg; el.classList.add("on");
   clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("on"),1600); }
 
-// ---------- Глубина: открытие нового яруса ----------
-function checkDepthUp(){
-  const d=depthIndex();
-  if(d>S.depth){ S.depth=d; toast(T("newDepth")+curDepth().name[lang()]+"!"); }
-}
-
-// ---------- Вагонетка: сдать руду, получить бонус ----------
-function deliverCart(){
-  const cap=cartCap(), val=oreValue();
-  const bonus=Math.floor(cap*val*0.6);
-  S.coins+=bonus; S.lifetime+=bonus;
-  S.gems[depthIndex()] = (S.gems[depthIndex()]||0)+1;
-  S.ore-=cap; if(S.ore<0) S.ore=0;
-  toast(T("cartFull")+fmt(bonus));
-  sfx("coin");
-  checkDepthUp();
-}
-
 // ---------- Действия ----------
-let punch=0; // GAME: анимация «удара» кирки (0..1, гасится в frame)
+let punch=0; // GAME: анимация «удара» кирки в выбранной штольне (0..1, гасится в frame)
 function doTap(){
-  const g=tapGain();
-  const gain=g*oreValue();
-  S.coins+=gain; S.lifetime+=gain; S.ore+=g;
-  punch=1; spawnOreParticle();
+  const sel=S.selected;
+  if(!S.tunnels[sel] || !S.tunnels[sel].unlocked) return;
+  const gain=goldPerTap(sel);
+  S.coins+=gain; S.lifetime+=gain;
+  punch=1; spawnOreParticle(sel);
   sfx("tap");
-  if(S.ore>=cartCap()) deliverCart();
   refreshHud(); persist();
 }
-function doUpgrade(){
-  const c=upCost();
-  if(S.coins<c){ toast(T("need")); sfx("error"); return; }
-  S.coins-=c; S.pickLvl++;
-  let msg=T("upgraded");
-  if(S.pickLvl%3===0){ S.liftLvl++; msg=T("helperJoined"); }
-  refreshHud(); persist(true); submitScore(S.lifetime); maybeInterstitial(); checkDepthUp();
-  toast(msg); sfx("buy");
+function doAction(){
+  const ctx=actionCtx();
+  if(ctx.type==="hire"){
+    if(S.coins<ctx.cost){ toast(T("need")); sfx("error"); return; }
+    S.coins-=ctx.cost; S.tunnels[ctx.idx].hasCat=true;
+    toast(T("helperJoined")); sfx("buy");
+  } else if(ctx.type==="unlock"){
+    if(S.coins<ctx.cost){ toast(T("need")); sfx("error"); return; }
+    S.coins-=ctx.cost; S.tunnels[ctx.idx].unlocked=true; S.selected=ctx.idx;
+    toast(T("newTunnel")+TUNNELS[ctx.idx].name[lang()]+"!"); sfx("buy");
+  } else return;
+  refreshHud(); persist(true); submitScore(S.lifetime); maybeInterstitial();
 }
+function selectTunnel(idx){
+  if(idx<0||idx>=TUNNELS.length) return;
+  if(!S.tunnels[idx].unlocked){
+    if(idx===firstLockedIdx()) toast(T("locked")+" · "+fmt(TUNNELS[idx].unlockCost));
+    return;
+  }
+  S.selected=idx; refreshHud();
+}
+
+// ---------- Окно улучшений (отдельная модалка) ----------
+let upModalOpen=false;
+const UP_ICONS = {
+  tap: '<svg viewBox="0 0 40 40" width="30" height="30"><g transform="translate(20,22) rotate(-28)">'
+    +'<line x1="0" y1="0" x2="0" y2="-16" stroke="#8C6239" stroke-width="4.5" stroke-linecap="round"/>'
+    +'<path d="M-7 -16 Q-2.5 -21.5 0 -17 Q2.5 -21.5 7 -16 Q0 -12 -7 -16 Z" fill="#B9BEC7" stroke="#4A3527" stroke-width="1.6" stroke-linejoin="round"/>'
+    +'</g></svg>',
+  catSpeed: '<svg viewBox="0 0 40 40" width="30" height="30"><path d="M22 5 L11 23 L19 23 L15 35 L30 15 L21 15 Z" fill="#F2B341" stroke="#4A3527" stroke-width="2" stroke-linejoin="round"/></svg>',
+  yield: '<svg viewBox="0 0 40 40" width="30" height="30"><path d="M20 5 L31 15 L26 34 L14 34 L9 15 Z" fill="#3FAE5D" stroke="#4A3527" stroke-width="2" stroke-linejoin="round"/><path d="M20 5 L20 34 M9 15 L31 15" stroke="#4A3527" stroke-width="1.3" opacity="0.5"/></svg>',
+};
+function renderUpgradesModal(){
+  const rows=[
+    {key:"tap",      name:T("upTap"),  desc:T("upTapD")},
+    {key:"catSpeed", name:T("upCat"),  desc:T("upCatD")},
+    {key:"yield",    name:T("upYield"),desc:T("upYieldD")},
+  ];
+  $("upTitle").textContent=T("upTitle");
+  $("upHint").textContent=T("upHint");
+  $("upList").innerHTML=rows.map(r=>{
+    const cost=upCost(r.key), afford=S.coins>=cost;
+    return '<div class="upRow"><div class="ic">'+UP_ICONS[r.key]+'</div>'
+      +'<div class="info"><div class="name">'+r.name+'</div>'
+      +'<div class="lvl">'+T("lvl")+' '+S.U[r.key]+' · '+r.desc+'</div></div>'
+      +'<button data-key="'+r.key+'" '+(afford?'':'disabled')+'>'+T("buy")+' '+fmt(cost)+'</button></div>';
+  }).join('');
+  $("upList").querySelectorAll('button[data-key]').forEach(b=>{
+    b.onclick=()=>buyUpgrade(b.getAttribute('data-key'));
+  });
+}
+function buyUpgrade(key){
+  const cost=upCost(key);
+  if(S.coins<cost){ toast(T("need")); sfx("error"); return; }
+  S.coins-=cost; S.U[key]++;
+  sfx("buy"); toast(T("upgraded"));
+  refreshHud(); persist(true); submitScore(S.lifetime); maybeInterstitial();
+}
+function openUpModal(){ upModalOpen=true; $("upModal").classList.add("on"); renderUpgradesModal(); }
+function closeUpModal(){ upModalOpen=false; $("upModal").classList.remove("on"); }
 
 // ---------- Canvas: отрисовка мира шахты ----------
 const cv=$("cv"), ctx=cv.getContext("2d");
@@ -282,88 +403,89 @@ function shadeColor(hex,percent){
 }
 function seeded(seed){ let s=(seed>>>0)||1; return function(){ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 
-// GAME: детерминированная раскладка камешков/трещин/прожилок по ярусу — считается один раз
-// на смену глубины, не дёргается на каждый кадр (см. STYLE.md — фон-иллюстрация, не заливка)
-let rockLayout=null, rockLayoutIdx=-1;
-function buildRockLayout(idx){
-  const rnd=seeded(idx*97+13);
-  const rocks=[], cracks=[], veins=[];
-  for(let i=0;i<16;i++) rocks.push({ x:rnd(), y:rnd(), r:0.018+rnd()*0.05 });
-  for(let i=0;i<5;i++){
-    const x0=rnd(), y0=0.05+rnd()*0.7;
-    cracks.push({ x0,y0, x1:x0+(rnd()-0.5)*0.16, y1:y0+0.08+rnd()*0.12, x2:x0+(rnd()-0.5)*0.26, y2:y0+0.18+rnd()*0.16 });
+// GAME: детерминированная раскладка камешков/трещин по всей колонне шахты — считается один раз
+let rockLayout=null;
+function buildRockLayout(){
+  const rnd=seeded(777);
+  const rocks=[], cracks=[];
+  for(let i=0;i<26;i++) rocks.push({ x:rnd(), y:rnd(), r:0.010+rnd()*0.024 });
+  for(let i=0;i<8;i++){
+    const x0=rnd(), y0=rnd();
+    cracks.push({ x0,y0, x1:x0+(rnd()-0.5)*0.10, y1:y0+0.05+rnd()*0.06, x2:x0+(rnd()-0.5)*0.16, y2:y0+0.10+rnd()*0.08 });
   }
-  for(let i=0;i<9;i++) veins.push({ x:rnd(), y:rnd(), r:0.010+rnd()*0.018, rot:rnd()*Math.PI });
-  return { rocks, cracks, veins };
+  return { rocks, cracks };
 }
 
-// GAME: иллюстрированная сцена шахты — каменный градиент + камешки/трещины/прожилки руды,
-// палитра темнее и с прожилками нужного цвета на каждом из 6 ярусов (см. DEPTHS)
-function drawBackground(d, di){
-  if(rockLayoutIdx!==di){ rockLayout=buildRockLayout(di); rockLayoutIdx=di; }
-  const top=shadeColor(d.bg,16), bot=shadeColor(d.bg,-40-di*3);
+// GAME: вертикальный разрез шахты — цвет от светлого приповерхностного грунта к тёмной глубине,
+// плавный переход через тона всех штолен сразу (все видны одновременно, см. бриф про кросс-секцию)
+function drawBackground(){
+  if(!rockLayout) rockLayout=buildRockLayout();
   const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,top); g.addColorStop(0.55,d.bg); g.addColorStop(1,bot);
+  const n=TUNNELS.length;
+  g.addColorStop(0, shadeColor(TUNNELS[0].bg,30));
+  for(let i=0;i<n;i++) g.addColorStop(Math.min(1,(i+0.5)/n), TUNNELS[i].bg);
+  g.addColorStop(1, shadeColor(TUNNELS[n-1].bg,-18));
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 
-  const rg=ctx.createRadialGradient(W*0.5,H*0.36,H*0.10, W*0.5,H*0.36,H*0.85);
-  rg.addColorStop(0,"rgba(0,0,0,0)"); rg.addColorStop(1,"rgba(0,0,0,"+(0.30+di*0.03)+")");
-  ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
-
   const m=Math.min(W,H);
+  ctx.globalAlpha=0.5;
   rockLayout.rocks.forEach(r=>{
     const x=r.x*W, y=r.y*H, rad=r.r*m;
-    const rg2=ctx.createRadialGradient(x-rad*0.3,y-rad*0.3,rad*0.15, x,y,rad);
-    rg2.addColorStop(0,shadeColor(d.bg,22)); rg2.addColorStop(1,shadeColor(d.bg,-20));
-    ctx.fillStyle=rg2;
+    ctx.fillStyle="rgba(0,0,0,.18)";
     ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill();
   });
-
-  ctx.strokeStyle="rgba(0,0,0,.30)"; ctx.lineWidth=Math.max(2,m*0.0035); ctx.lineCap="round";
+  ctx.globalAlpha=1;
+  ctx.strokeStyle="rgba(0,0,0,.22)"; ctx.lineWidth=Math.max(1.4,m*0.0025); ctx.lineCap="round";
   rockLayout.cracks.forEach(c=>{
     ctx.beginPath(); ctx.moveTo(c.x0*W,c.y0*H); ctx.quadraticCurveTo(c.x1*W,c.y1*H,c.x2*W,c.y2*H); ctx.stroke();
   });
-
-  ctx.fillStyle=d.color;
-  rockLayout.veins.forEach(v=>{
-    const x=v.x*W, y=v.y*H, r=v.r*m;
-    ctx.save(); ctx.globalAlpha=0.30; ctx.translate(x,y); ctx.rotate(v.rot);
-    ctx.beginPath(); ctx.ellipse(0,0,r,r*0.4,0,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  });
 }
 
-// GAME: векторный кристалл руды (ромб + грань-блик), цвет — тема яруса. Заменяет emoji-руду.
+// GAME: векторный кристалл руды — заменяет emoji-руду
 function drawGem(x,y,size,color){
   ctx.save(); ctx.translate(x,y);
   ctx.beginPath();
   ctx.moveTo(0,-size); ctx.lineTo(size*0.72,-size*0.15); ctx.lineTo(size*0.42,size);
   ctx.lineTo(-size*0.42,size); ctx.lineTo(-size*0.72,-size*0.15); ctx.closePath();
   ctx.fillStyle=color; ctx.fill();
-  ctx.lineWidth=Math.max(1.2,size*0.14); ctx.strokeStyle=cssVar("--ink"); ctx.stroke();
+  ctx.lineWidth=Math.max(1.1,size*0.14); ctx.strokeStyle=cssVar("--ink"); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0,-size); ctx.lineTo(0,size*0.15); ctx.lineTo(size*0.42,size); ctx.closePath();
   ctx.globalAlpha=0.22; ctx.fillStyle="#fff"; ctx.fill(); ctx.globalAlpha=1;
   ctx.restore();
 }
 
-// GAME: векторный замочек для нераскрытых ярусов коллекции — заменяет emoji 🔒
+// GAME: навесной замок для запертых штолен — заменяет emoji 🔒
 function drawLock(x,y,size){
   ctx.save(); ctx.translate(x,y);
-  ctx.lineWidth=Math.max(1.4,size*0.18); ctx.strokeStyle=cssVar("--ink"); ctx.lineCap="round";
-  ctx.beginPath(); ctx.arc(0,-size*0.05,size*0.5,Math.PI,0,false); ctx.stroke();
-  ctx.fillStyle="#B9AC94";
-  roundRectPath(-size*0.62,-size*0.05,size*1.24,size*1.0,size*0.2); ctx.fill(); ctx.stroke();
-  ctx.fillStyle=cssVar("--ink");
-  ctx.beginPath(); ctx.arc(0,size*0.36,size*0.12,0,Math.PI*2); ctx.fill();
+  ctx.lineWidth=Math.max(1.3,size*0.16); ctx.strokeStyle="#DCCFB8"; ctx.lineCap="round";
+  ctx.beginPath(); ctx.arc(0,-size*0.05,size*0.46,Math.PI,0,false); ctx.stroke();
+  ctx.fillStyle="#8C7360";
+  roundRectPath(-size*0.58,-size*0.05,size*1.16,size*0.94,size*0.18); ctx.fill();
+  ctx.strokeStyle="#DCCFB8"; ctx.lineWidth=Math.max(1,size*0.08); ctx.stroke();
+  ctx.fillStyle="#4A3527";
+  ctx.beginPath(); ctx.arc(0,size*0.32,size*0.11,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// GAME: решётка на запертой штольне — тёмные вертикальные прутья вместо emoji
+function drawGate(x,y,w,h){
+  ctx.save();
+  ctx.strokeStyle="rgba(0,0,0,.5)"; ctx.lineWidth=Math.max(2,w*0.02); ctx.lineCap="round";
+  const bars=5;
+  for(let i=1;i<bars;i++){
+    const bx=x+w*i/bars;
+    ctx.beginPath(); ctx.moveTo(bx,y+h*0.08); ctx.lineTo(bx,y+h*0.92); ctx.stroke();
+  }
   ctx.restore();
 }
 
 // GAME: кот-шахтёр — векторная фигура (голова-круг, треугольные уши, овальное тело+хвост).
-// mini=true — упрощённый силуэт для помощников сбоку (без мордочки/усов).
-function drawCat(x,y,size,mini){
+// mining=0..1 фаза цикла добычи (лёгкое покачивание — живая, не статичная поза)
+function drawCat(x,y,size,mining){
   const ink=cssVar("--ink"), fur="#E8A96B", furIn="#F3C08A";
-  ctx.save(); ctx.translate(x,y);
-  const lw=Math.max(1.4,size*0.05);
+  const bob = mining!=null ? Math.sin(mining*Math.PI*2)*size*0.05 : 0;
+  ctx.save(); ctx.translate(x,y+bob);
+  const lw=Math.max(1.3,size*0.05);
   ctx.lineJoin="round";
   // хвост
   ctx.beginPath();
@@ -386,30 +508,28 @@ function drawCat(x,y,size,mini){
     ctx.moveTo(s*size*0.30,-size*0.38); ctx.lineTo(s*size*0.44,-size*0.60); ctx.lineTo(s*size*0.14,-size*0.46);
     ctx.closePath(); ctx.fillStyle=furIn; ctx.fill();
   });
-  if(!mini){
-    ctx.fillStyle=ink;
-    ctx.beginPath(); ctx.arc(-size*0.16,-size*0.04,size*0.055,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(size*0.16,-size*0.04,size*0.055,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(-size*0.06,size*0.12); ctx.quadraticCurveTo(0,size*0.20,size*0.06,size*0.12);
-    ctx.lineWidth=size*0.045; ctx.stroke();
-    ctx.lineWidth=size*0.028;
-    [-1,1].forEach(s=>{ for(let i=0;i<2;i++){
-      ctx.beginPath(); ctx.moveTo(s*size*0.30,size*0.06+i*size*0.07); ctx.lineTo(s*size*0.62,size*0.02+i*size*0.09); ctx.stroke();
-    }});
-  }
+  ctx.fillStyle=ink;
+  ctx.beginPath(); ctx.arc(-size*0.16,-size*0.04,size*0.055,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(size*0.16,-size*0.04,size*0.055,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-size*0.06,size*0.12); ctx.quadraticCurveTo(0,size*0.20,size*0.06,size*0.12);
+  ctx.lineWidth=size*0.045; ctx.stroke();
+  ctx.lineWidth=size*0.028;
+  [-1,1].forEach(s=>{ for(let i=0;i<2;i++){
+    ctx.beginPath(); ctx.moveTo(s*size*0.30,size*0.06+i*size*0.07); ctx.lineTo(s*size*0.62,size*0.02+i*size*0.09); ctx.stroke();
+  }});
   ctx.fillStyle=fur;
   ctx.beginPath(); ctx.ellipse(-size*0.24,size*0.92,size*0.14,size*0.11,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
   ctx.beginPath(); ctx.ellipse(size*0.24,size*0.92,size*0.14,size*0.11,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
   ctx.restore();
 }
 
-// GAME: векторная кирка — деревянная рукоять + металлическая изогнутая головка. Заменяет emoji ⛏️.
+// GAME: векторная кирка — заменяет emoji ⛏️
 function drawPickaxe(x,y,size,angle){
   const ink=cssVar("--ink");
   ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
   ctx.lineWidth=size*0.16; ctx.strokeStyle="#8C6239"; ctx.lineCap="round";
   ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-size*1.05); ctx.stroke();
-  ctx.lineWidth=Math.max(1.2,size*0.045); ctx.strokeStyle=ink; ctx.stroke();
+  ctx.lineWidth=Math.max(1.1,size*0.045); ctx.strokeStyle=ink; ctx.stroke();
   ctx.translate(0,-size*1.05);
   ctx.beginPath();
   ctx.moveTo(-size*0.55,0);
@@ -418,114 +538,221 @@ function drawPickaxe(x,y,size,angle){
   ctx.quadraticCurveTo(0,size*0.20,-size*0.55,0);
   ctx.closePath();
   ctx.fillStyle="#B9BEC7"; ctx.fill();
-  ctx.lineWidth=Math.max(1.2,size*0.05); ctx.strokeStyle=ink; ctx.stroke();
+  ctx.lineWidth=Math.max(1.1,size*0.05); ctx.strokeStyle=ink; ctx.stroke();
   ctx.restore();
 }
 
-// GAME: слой руды летит от кота к вагонетке — векторный кристалл вместо emoji-частицы
-let particles=[]; let lastLayout=null;
-function spawnOreParticle(){
-  if(!lastLayout) return;
-  particles.push({ x0:lastLayout.catX, y0:lastLayout.catY, x1:lastLayout.cartX, y1:lastLayout.cartY,
-    t0:performance.now(), dur:550, color:curDepth().color });
+// GAME: лифт — кабина на тросе, ездит по центральной шахтной колонне к выбранной штольне
+function drawElevator(shaftX, shaftW, topY, carY){
+  const w=shaftW*1.7, h=w*0.62;
+  ctx.save();
+  // трос от блока наверху до кабины
+  ctx.strokeStyle="rgba(0,0,0,.55)"; ctx.lineWidth=Math.max(1.5,w*0.035); ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(shaftX,topY); ctx.lineTo(shaftX,carY-h/2); ctx.stroke();
+  // блок/шкив наверху
+  ctx.fillStyle="#8C7360"; ctx.strokeStyle=cssVar("--ink"); ctx.lineWidth=Math.max(1.2,w*0.05);
+  ctx.beginPath(); ctx.arc(shaftX,topY,w*0.22,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  // кабина
+  ctx.translate(shaftX,carY);
+  ctx.fillStyle="#D89426"; ctx.strokeStyle=cssVar("--ink"); ctx.lineWidth=Math.max(1.4,w*0.05);
+  roundRectPath(-w/2,-h/2,w,h,w*0.14); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle="rgba(0,0,0,.3)"; ctx.lineWidth=Math.max(1,w*0.03);
+  ctx.beginPath(); ctx.moveTo(-w*0.15,-h/2+2); ctx.lineTo(-w*0.15,h/2-2);
+  ctx.moveTo(w*0.15,-h/2+2); ctx.lineTo(w*0.15,h/2-2); ctx.stroke();
+  // фонарь кабины
+  ctx.fillStyle="#FFE7A8";
+  ctx.beginPath(); ctx.arc(0,-h*0.02,w*0.09,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// GAME: частицы золота летят от штольни к монетной плашке HUD — вектор вместо emoji-искр
+let particles=[];
+function spawnOreParticle(idx){
+  const row=rowRects[idx]; if(!row) return;
+  particles.push({ x0:row.catX, y0:row.cy, x1:W*0.10, y1:24,
+    t0:performance.now(), dur:520, color:TUNNELS[idx].color });
 }
 function drawParticles(now){
   particles=particles.filter(p=>{
     const t=(now-p.t0)/p.dur;
     if(t>=1) return false;
-    const x=p.x0+(p.x1-p.x0)*t, y=p.y0+(p.y1-p.y0)*t - Math.sin(t*Math.PI)*36;
+    const x=p.x0+(p.x1-p.x0)*t, y=p.y0+(p.y1-p.y0)*t - Math.sin(t*Math.PI)*40;
     ctx.globalAlpha=1-t*0.7;
-    drawGem(x,y,11,p.color);
+    drawGem(x,y,10,p.color);
     ctx.globalAlpha=1;
     return true;
   });
 }
 
-function drawScene(){
-  const d=curDepth(), di=depthIndex();
+// ---------- Живой мир: фоновые анимации даже без действий игрока ----------
+let dustMotes=null, firefly=null, critter=null;
+function ensureAmbient(){
+  if(!dustMotes){
+    const rnd=seeded(4242);
+    dustMotes=[]; for(let i=0;i<5;i++) dustMotes.push({ x:rnd(), y:rnd(), ph:rnd()*10, sp:0.4+rnd()*0.4 });
+  }
+  if(!firefly) firefly={ ph:0 };
+  if(!critter) critter={ next: performance.now()+3000+Math.random()*4000, active:false };
+}
+function drawAmbient(now, colX, colW){
+  ensureAmbient();
+  const t=now/1000;
+  // пылинки/искры породы, лениво дрейфующие вверх-вниз
+  ctx.globalAlpha=0.35;
+  dustMotes.forEach(d=>{
+    const x=colX+d.x*colW, y=(d.y*H + Math.sin(t*d.sp+d.ph)*18) % H;
+    ctx.fillStyle="#FFE7A8";
+    ctx.beginPath(); ctx.arc(x,y,2.2,0,Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha=1;
+  // светлячок/жук-фонарик, кружащий у центральной колонны
+  firefly.ph=t*0.6;
+  const fx=colX+colW*0.5+Math.cos(firefly.ph)*colW*0.36, fy=H*0.5+Math.sin(firefly.ph*1.3)*H*0.32;
+  const glow=0.5+0.5*Math.sin(t*4);
+  ctx.save();
+  ctx.globalAlpha=0.55*glow;
+  ctx.fillStyle="#FFE7A8";
+  ctx.beginPath(); ctx.arc(fx,fy,7,0,Math.PI*2); ctx.fill();
+  ctx.globalAlpha=1; ctx.fillStyle="#F2C94C";
+  ctx.beginPath(); ctx.arc(fx,fy,2.6,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+  // мышка иногда перебегает пустую (открытую, без кота) штольню
+  if(!critter.active && now>critter.next){
+    const empties=[]; for(let i=0;i<TUNNELS.length;i++) if(S.tunnels[i].unlocked && !S.tunnels[i].hasCat) empties.push(i);
+    if(empties.length){ critter.active=true; critter.idx=empties[Math.floor(Math.random()*empties.length)]; critter.t0=now; critter.dur=1800; }
+    else critter.next=now+2000;
+  }
+  if(critter.active){
+    const row=rowRects[critter.idx];
+    const t2=(now-critter.t0)/critter.dur;
+    if(t2>=1 || !row){ critter.active=false; critter.next=now+4000+Math.random()*5000; }
+    else{
+      const x=row.x+row.w*(0.08+0.8*t2), y=row.cy+row.h*0.32;
+      ctx.save(); ctx.translate(x,y);
+      ctx.fillStyle="#8C7360"; ctx.strokeStyle=cssVar("--ink"); ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.ellipse(0,0,7,4.2,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(6,-1.5,3,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle="#8C7360"; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(-6,1); ctx.quadraticCurveTo(-11,4,-9,8); ctx.stroke();
+      ctx.restore();
+    }
+  }
+}
+
+// ---------- Раскладка и отрисовка сцены ----------
+let rowRects=[]; // GAME: прямоугольники штолен в экранных координатах — для попадания тапа/лифта/частиц
+let elevatorY=0, elevatorInit=false;
+
+function drawScene(now){
   const colW=Math.min(W,560), colX=(W-colW)/2;
+  drawBackground();
 
-  drawBackground(d, di);
-  ctx.fillStyle="rgba(0,0,0,.22)";
-  ctx.fillRect(0,0,colX,H); ctx.fillRect(colX+colW,0,W-colX-colW,H);
+  const shaftW=colW*0.13, shaftX=colX+shaftW*0.9;
+  const topY=H*0.15, botY=H*0.87, n=TUNNELS.length;
+  const rowH=(botY-topY)/n;
 
-  // туннельная арка позади кота
-  ctx.fillStyle="rgba(0,0,0,.20)";
-  ctx.beginPath(); ctx.ellipse(colX+colW/2, H*0.62, colW*0.42, H*0.30, 0,0,Math.PI*2); ctx.fill();
-  // пол забоя
-  ctx.strokeStyle="rgba(0,0,0,.3)"; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.moveTo(colX+colW*0.08,H*0.80); ctx.lineTo(colX+colW*0.92,H*0.80); ctx.stroke();
-
-  // вагонетка
-  const cw=colW*0.5, ch=Math.min(colW*0.22, H*0.10);
-  const cx=colX+(colW-cw)/2, cy=H*0.20;
-  ctx.lineWidth=4; ctx.strokeStyle=cssVar("--line"); ctx.fillStyle=cssVar("--paper");
-  roundRectPath(cx,cy,cw,ch,16); ctx.fill(); ctx.stroke();
-  const pad=7, pct=Math.min(1,S.ore/cartCap());
-  ctx.fillStyle="rgba(0,0,0,.18)"; roundRectPath(cx+pad,cy+pad,cw-2*pad,ch-2*pad,10); ctx.fill();
-  ctx.fillStyle=cssVar("--accent");
-  ctx.save(); roundRectPath(cx+pad,cy+pad,(cw-2*pad)*pct,ch-2*pad,10); ctx.clip(); ctx.fillRect(cx+pad,cy+pad,cw-2*pad,ch-2*pad); ctx.restore();
-  ctx.fillStyle=cssVar("--ink");
-  ctx.beginPath(); ctx.arc(cx+cw*0.22,cy+ch+9,8,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx+cw*0.78,cy+ch+9,8,0,Math.PI*2); ctx.fill();
-  drawGem(cx+cw*0.16, cy+ch/2, Math.min(cw,ch)*0.17, d.color);
-  ctx.font="26px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.fillStyle="#fff"; ctx.fillText(Math.floor(S.ore)+"/"+cartCap(), cx+cw*0.60, cy+ch/2);
-
-  // кот-шахтёр + кирка (векторная отрисовка)
-  const catX=colX+colW*0.42, catY=H*0.66;
-  const size=colW*0.30*(1+punch*0.14);
-  ctx.save(); ctx.translate(catX,catY); ctx.rotate(-punch*0.10);
-  drawCat(0,0,size*0.62,false);
-  ctx.restore();
-  ctx.save(); ctx.translate(catX+size*0.34, catY-size*0.12); ctx.rotate(0.55-punch*1.0);
-  drawPickaxe(0,0,size*0.30,0);
-  ctx.restore();
-
-  // помощники (пассивная добыча) — маленькие векторные коты сбоку
-  for(let i=0;i<Math.min(S.liftLvl,4);i++){
-    const hx=colX+colW*(0.14+i*0.10), hy=H*0.74;
-    drawCat(hx,hy,colW*0.055,true);
-  }
-
-  lastLayout={ catX, catY, cartX:cx+cw/2, cartY:cy+ch/2 };
-
-  // коллекция руд снизу — векторные кристаллы/замочки вместо emoji
-  const n=DEPTHS.length, stripW=colW*0.94, sx=colX+(colW-stripW)/2, sy=H*0.92, cellW=stripW/n;
+  rowRects=[];
   for(let i=0;i<n;i++){
-    const gx=sx+cellW*i+cellW/2;
-    const discovered=i<=di;
-    if(discovered) drawGem(gx, sy, 9, DEPTHS[i].color); else drawLock(gx, sy, 8);
-    ctx.font="800 11px Nunito, sans-serif"; ctx.fillStyle="rgba(255,255,255,.85)"; ctx.textAlign="center"; ctx.textBaseline="middle";
-    ctx.fillText(discovered?String(S.gems[i]||0):"", gx, sy+15);
+    const cy=topY+rowH*(i+0.5);
+    const x=shaftX+shaftW*0.55, w=colX+colW*0.95-x, h=rowH*0.72, y=cy-h/2;
+    rowRects.push({ x,y,w,h,cy,catX:x+w*0.36 });
   }
+
+  // штольни: фон полосы, содержимое, решётка/замок для запертых
+  rowRects.forEach((r,i)=>{
+    const t=TUNNELS[i], unlocked=S.tunnels[i].unlocked, hasCat=S.tunnels[i].hasCat;
+    ctx.fillStyle = unlocked ? "rgba(0,0,0,.16)" : "rgba(0,0,0,.44)";
+    roundRectPath(r.x,r.y,r.w,r.h,r.h*0.22); ctx.fill();
+    ctx.lineWidth = i===S.selected && unlocked ? 3 : 1.6;
+    ctx.strokeStyle = i===S.selected && unlocked ? cssVar("--accent") : "rgba(0,0,0,.35)";
+    roundRectPath(r.x,r.y,r.w,r.h,r.h*0.22); ctx.stroke();
+
+    if(!unlocked){
+      drawGate(r.x,r.y,r.w,r.h);
+      drawLock(r.x+r.w*0.5, r.cy, r.h*0.28);
+      ctx.font="800 "+Math.max(10,r.h*0.24)+"px Nunito, sans-serif";
+      ctx.fillStyle="rgba(255,255,255,.75)"; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText(fmt(t.unlockCost), r.x+r.w*0.5, r.cy+r.h*0.42);
+      return;
+    }
+
+    // немного руды/породы на виду — узнаваемый цвет штольни
+    drawGem(r.x+r.w*0.86, r.cy, r.h*0.16, t.color);
+    drawGem(r.x+r.w*0.74, r.cy+r.h*0.20, r.h*0.10, t.color);
+
+    if(hasCat){
+      const mining=((now/1000*(0.6+catRateU()*0.25))+i*0.37)%1;
+      const size=r.h*1.05;
+      drawCat(r.catX, r.cy+r.h*0.30, size*0.5, mining);
+      const swing=0.5+Math.sin(mining*Math.PI*2)*0.9;
+      ctx.save(); ctx.translate(r.catX+size*0.30, r.cy+r.h*0.06); ctx.rotate(swing);
+      drawPickaxe(0,0,size*0.24,0);
+      ctx.restore();
+    } else if(i===S.selected){
+      const size=r.h*1.05*(1+punch*0.16);
+      ctx.save(); ctx.translate(r.catX, r.cy+r.h*0.30); ctx.rotate(-punch*0.10);
+      drawCat(0,0,size*0.5,null);
+      ctx.restore();
+      ctx.save(); ctx.translate(r.catX+size*0.30, r.cy+r.h*0.06-punch*4); ctx.rotate(0.55-punch*1.0);
+      drawPickaxe(0,0,size*0.24,0);
+      ctx.restore();
+    }
+  });
+
+  // центральная шахтная колонна (тёмный проём) поверх фона, под штольнями
+  ctx.fillStyle="rgba(0,0,0,.38)";
+  roundRectPath(shaftX-shaftW*0.55,topY-rowH*0.35,shaftW*1.1,botY-topY+rowH*0.6,shaftW*0.3); ctx.fill();
+
+  drawAmbient(now, colX, colW);
+
+  // лифт едет к выбранной штольне (плавный лерп)
+  const targetY = rowRects[S.selected] ? rowRects[S.selected].cy : topY;
+  if(!elevatorInit){ elevatorY=targetY; elevatorInit=true; }
+  elevatorY += (targetY-elevatorY)*0.06;
+  drawElevator(shaftX, shaftW, topY-rowH*0.32, elevatorY);
+
+  // штольни поверх колонны там, где они правее нее — перерисуем содержимое уже сделано выше,
+  // колонна нарисована после фона, но до лифта — лифт остаётся видимым поверх неё
+
+  drawParticles(now);
 }
 
 let lastT=performance.now(), acc=0;
 function frame(now){
   let dt=Math.max(0,(now-lastT)/1000); lastT=now;
   acc+=dt;
-  if(acc>=1){ // GAME: пассивная добыча помощников раз в секунду
+  if(acc>=1){ // GAME: пассивная добыча котов раз в секунду
     const t=Math.floor(acc); acc-=t;
-    if(S.liftLvl>0){
-      const oreGain=liftRate()*t, coinsGain=oreGain*oreValue();
-      S.coins+=coinsGain; S.lifetime+=coinsGain; S.ore+=oreGain;
-      if(S.ore>=cartCap()) deliverCart();
-      refreshHud(); persist();
-    }
+    const gain=ips()*t;
+    if(gain>0){ S.coins+=gain; S.lifetime+=gain; refreshHud(); persist(); }
   }
   punch=Math.max(0,punch-dt*3.2);
-  drawScene();
-  drawParticles(now);
+  drawScene(now);
   requestAnimationFrame(frame);
 }
 
+// ---------- Клик по канвасу: выбрать/копать штольню под пальцем ----------
+cv.addEventListener("pointerdown", e=>{
+  const rect=cv.getBoundingClientRect();
+  const px=e.clientX-rect.left, py=e.clientY-rect.top;
+  for(let i=0;i<rowRects.length;i++){
+    const r=rowRects[i];
+    if(px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h){
+      if(S.tunnels[i].unlocked){ if(i!==S.selected) selectTunnel(i); else doTap(); }
+      else selectTunnel(i);
+      break;
+    }
+  }
+});
+
 // ---------- Тест-хуки (для Playwright smoke-теста) ----------
 window.render_game_to_text = () => JSON.stringify({
-  coins:S.coins, lvl:S.pickLvl, ips:ips(), upCost:upCost(),
-  depth:depthIndex(), ore:S.ore, lifetime:S.lifetime
+  coins:S.coins, lifetime:S.lifetime, ips:ips(), selected:S.selected,
+  unlockedCount:unlockedCount(), tunnelsTotal:TUNNELS.length,
+  tunnels:S.tunnels.map((t,i)=>({unlocked:t.unlocked,hasCat:t.hasCat,catCost:TUNNELS[i].catCost,unlockCost:TUNNELS[i].unlockCost})),
+  upgrades:Object.assign({},S.U), action:actionCtx()
 });
-window.advanceTime = ms => { S.coins += ips()*(ms/1000); refreshHud(); };
+window.advanceTime = ms => { const g=ips()*(ms/1000); S.coins+=g; S.lifetime+=g; refreshHud(); };
 
 // ---------- Boot ----------
 function boot(raw){
@@ -533,8 +760,11 @@ function boot(raw){
   restore(raw);
   resize(); refreshHud();
   $("tapBtn").onclick=doTap;
-  $("upBtn").onclick=doUpgrade;
+  $("actionBtn").onclick=doAction;
   $("giftBtn").onclick=claimGift;
+  $("upBtn2").onclick=openUpModal;
+  $("closeUp").onclick=closeUpModal;
+  $("upModal").addEventListener("click", e=>{ if(e.target.id==="upModal") closeUpModal(); });
   startMusic(); // GAME: глухой низкий эмбиент-луп под тему шахты, см. sfx.js
   if(giftAvailable()) setTimeout(()=>{ if(giftAvailable()) toast(T("giftReady")); },1200);
   requestAnimationFrame(frame);
