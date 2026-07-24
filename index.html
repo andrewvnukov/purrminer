@@ -69,15 +69,24 @@
     <div class="chip"><span class="v" id="ipsV">0/с</span><span class="l" id="ipsL">ДОХОД</span></div>
     <div class="chip"><span class="v" id="depthV">—</span><span class="l" id="depthL">ГЛУБИНА</span></div>
     <div class="spacer"></div>
-    <button class="giftbtn" id="giftBtn" style="display:none" title="Ежедневный подарок">🎁</button>
+    <button class="giftbtn" id="giftBtn" style="display:none" title="Ежедневный подарок">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="10" width="16" height="10" rx="1.5" fill="#FFF3DD" stroke="#4A3527" stroke-width="1.8"/>
+        <rect x="4" y="10" width="16" height="4" fill="#F2B341" stroke="#4A3527" stroke-width="1.8"/>
+        <rect x="10.5" y="4" width="3" height="16" fill="#E07E4C" stroke="#4A3527" stroke-width="1.4"/>
+        <path d="M12 4 C9 4 8 1.5 10 1 C12 0.6 12 3 12 4Z" fill="#F2B341" stroke="#4A3527" stroke-width="1.4"/>
+        <path d="M12 4 C15 4 16 1.5 14 1 C12 0.6 12 3 12 4Z" fill="#F2B341" stroke="#4A3527" stroke-width="1.4"/>
+      </svg>
+    </button>
   </div>
   <div class="spacer"></div>
   <div class="bottom">
-    <button class="abtn main" id="tapBtn">Копать ⛏</button>
+    <button class="abtn main" id="tapBtn">Копать</button>
     <button class="abtn" id="upBtn">Улучшить</button>
   </div>
 </div>
 <div id="toast"></div>
+<script src="sfx.js"></script>
 <script>
 'use strict';
 // ============================================================
@@ -100,25 +109,26 @@ function lang(){
 const STR = {
   coins:{ru:"МОНЕТЫ",en:"COINS"}, income:{ru:"ДОХОД",en:"INCOME"},
   depthL:{ru:"ГЛУБИНА",en:"DEPTH"},
-  action:{ru:"Копать ⛏",en:"Dig ⛏"},
+  action:{ru:"Копать",en:"Dig"},
   upgrade:{ru:"Улучшить",en:"Upgrade"},
   need:{ru:"Не хватает монет",en:"Not enough coins"},
-  upgraded:{ru:"⛏ Кирка улучшена!",en:"⛏ Pickaxe upgraded!"},
-  helperJoined:{ru:"🐾 Кот-помощник присоединился!",en:"🐾 A helper cat joined!"},
+  upgraded:{ru:"Кирка улучшена!",en:"Pickaxe upgraded!"},
+  helperJoined:{ru:"Кот-помощник присоединился!",en:"A helper cat joined!"},
   newDepth:{ru:"Новая глубина открыта: ",en:"New depth unlocked: "},
-  cartFull:{ru:"🛒 Вагонетка разгружена! +",en:"🛒 Cart delivered! +"},
-  giftReady:{ru:"🎁 Загляни за подарком!",en:"🎁 Daily gift is ready!"},
+  cartFull:{ru:"Вагонетка разгружена! +",en:"Cart delivered! +"},
+  giftReady:{ru:"Загляни за подарком!",en:"Daily gift is ready!"},
 };
 const T = k => (STR[k]||{})[lang()] || (STR[k]||{}).ru || k;
 
 // GAME: 6 ярусов шахты — тема/руда/цена/цвет забоя, разблокируются по lifetime-доходу
+// color — цвет руды/прожилок (векторные кристаллы), bg — базовый камень яруса
 const DEPTHS = [
-  { name:{ru:"Погреб",   en:"Cellar"},       ore:{ru:"Камешки",  en:"Pebbles"},  emoji:"🪨", value:1,   bg:"#9C8768", thr:0 },
-  { name:{ru:"Штольня",  en:"Tunnel"},       ore:{ru:"Медь",     en:"Copper"},   emoji:"🟤", value:3,   bg:"#8A6A4E", thr:300 },
-  { name:{ru:"Пещера",   en:"Cavern"},       ore:{ru:"Серебро",  en:"Silver"},   emoji:"⚪", value:8,   bg:"#6B5646", thr:1200 },
-  { name:{ru:"Разлом",   en:"Rift"},         ore:{ru:"Золото",   en:"Gold"},     emoji:"🟡", value:20,  bg:"#4F3F34", thr:4000 },
-  { name:{ru:"Кристальный зал", en:"Crystal Hall"}, ore:{ru:"Изумруд", en:"Emerald"}, emoji:"🟢", value:50, bg:"#3A2F28", thr:12000 },
-  { name:{ru:"Бездна",   en:"Abyss"},        ore:{ru:"Сапфир",   en:"Sapphire"}, emoji:"🔵", value:120, bg:"#241D19", thr:30000 },
+  { name:{ru:"Погреб",   en:"Cellar"},       ore:{ru:"Камешки",  en:"Pebbles"},  color:"#B9AC94", value:1,   bg:"#9C8768", thr:0 },
+  { name:{ru:"Штольня",  en:"Tunnel"},       ore:{ru:"Медь",     en:"Copper"},   color:"#C97A46", value:3,   bg:"#8A6A4E", thr:300 },
+  { name:{ru:"Пещера",   en:"Cavern"},       ore:{ru:"Серебро",  en:"Silver"},   color:"#D9DCE0", value:8,   bg:"#6B5646", thr:1200 },
+  { name:{ru:"Разлом",   en:"Rift"},         ore:{ru:"Золото",   en:"Gold"},     color:"#F2C94C", value:20,  bg:"#4F3F34", thr:4000 },
+  { name:{ru:"Кристальный зал", en:"Crystal Hall"}, ore:{ru:"Изумруд", en:"Emerald"}, color:"#3FAE5D", value:50, bg:"#3A2F28", thr:12000 },
+  { name:{ru:"Бездна",   en:"Abyss"},        ore:{ru:"Сапфир",   en:"Sapphire"}, color:"#3B6FD1", value:120, bg:"#241D19", thr:30000 },
 ];
 
 // ---------- Состояние ----------
@@ -194,8 +204,8 @@ function claimGift(){
   if(!giftAvailable()) return;
   const bonus=Math.max(30, Math.floor(upCost()*0.6));
   S.coins+=bonus; S.lifetime+=bonus; S.lastGiftDay=todayStr();
-  toast("🎁 +"+fmt(bonus));
-  refreshHud(); persist(true); checkDepthUp();
+  toast((lang()==="ru"?"Подарок: +":"Gift: +")+fmt(bonus));
+  refreshHud(); persist(true); checkDepthUp(); sfx("coin");
 }
 
 // ---------- HUD ----------
@@ -219,7 +229,7 @@ function toast(msg){ const el=$("toast"); el.textContent=msg; el.classList.add("
 // ---------- Глубина: открытие нового яруса ----------
 function checkDepthUp(){
   const d=depthIndex();
-  if(d>S.depth){ S.depth=d; toast("⛏ "+T("newDepth")+curDepth().name[lang()]+"!"); }
+  if(d>S.depth){ S.depth=d; toast(T("newDepth")+curDepth().name[lang()]+"!"); }
 }
 
 // ---------- Вагонетка: сдать руду, получить бонус ----------
@@ -230,6 +240,7 @@ function deliverCart(){
   S.gems[depthIndex()] = (S.gems[depthIndex()]||0)+1;
   S.ore-=cap; if(S.ore<0) S.ore=0;
   toast(T("cartFull")+fmt(bonus));
+  sfx("coin");
   checkDepthUp();
 }
 
@@ -240,17 +251,18 @@ function doTap(){
   const gain=g*oreValue();
   S.coins+=gain; S.lifetime+=gain; S.ore+=g;
   punch=1; spawnOreParticle();
+  sfx("tap");
   if(S.ore>=cartCap()) deliverCart();
   refreshHud(); persist();
 }
 function doUpgrade(){
   const c=upCost();
-  if(S.coins<c){ toast(T("need")); return; }
+  if(S.coins<c){ toast(T("need")); sfx("error"); return; }
   S.coins-=c; S.pickLvl++;
   let msg=T("upgraded");
   if(S.pickLvl%3===0){ S.liftLvl++; msg=T("helperJoined"); }
   refreshHud(); persist(true); submitScore(S.lifetime); maybeInterstitial(); checkDepthUp();
-  toast(msg);
+  toast(msg); sfx("buy");
 }
 
 // ---------- Canvas: отрисовка мира шахты ----------
@@ -262,13 +274,160 @@ addEventListener("resize",resize);
 
 function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function roundRectPath(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); }
+function shadeColor(hex,percent){
+  const num=parseInt(hex.slice(1),16);
+  let r=(num>>16)+Math.round(2.55*percent), g=((num>>8)&0xff)+Math.round(2.55*percent), b=(num&0xff)+Math.round(2.55*percent);
+  r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
+  return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function seeded(seed){ let s=(seed>>>0)||1; return function(){ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 
-// GAME: слой руды летит от кота к вагонетке — чисто декоративная частица
+// GAME: детерминированная раскладка камешков/трещин/прожилок по ярусу — считается один раз
+// на смену глубины, не дёргается на каждый кадр (см. STYLE.md — фон-иллюстрация, не заливка)
+let rockLayout=null, rockLayoutIdx=-1;
+function buildRockLayout(idx){
+  const rnd=seeded(idx*97+13);
+  const rocks=[], cracks=[], veins=[];
+  for(let i=0;i<16;i++) rocks.push({ x:rnd(), y:rnd(), r:0.018+rnd()*0.05 });
+  for(let i=0;i<5;i++){
+    const x0=rnd(), y0=0.05+rnd()*0.7;
+    cracks.push({ x0,y0, x1:x0+(rnd()-0.5)*0.16, y1:y0+0.08+rnd()*0.12, x2:x0+(rnd()-0.5)*0.26, y2:y0+0.18+rnd()*0.16 });
+  }
+  for(let i=0;i<9;i++) veins.push({ x:rnd(), y:rnd(), r:0.010+rnd()*0.018, rot:rnd()*Math.PI });
+  return { rocks, cracks, veins };
+}
+
+// GAME: иллюстрированная сцена шахты — каменный градиент + камешки/трещины/прожилки руды,
+// палитра темнее и с прожилками нужного цвета на каждом из 6 ярусов (см. DEPTHS)
+function drawBackground(d, di){
+  if(rockLayoutIdx!==di){ rockLayout=buildRockLayout(di); rockLayoutIdx=di; }
+  const top=shadeColor(d.bg,16), bot=shadeColor(d.bg,-40-di*3);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,top); g.addColorStop(0.55,d.bg); g.addColorStop(1,bot);
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  const rg=ctx.createRadialGradient(W*0.5,H*0.36,H*0.10, W*0.5,H*0.36,H*0.85);
+  rg.addColorStop(0,"rgba(0,0,0,0)"); rg.addColorStop(1,"rgba(0,0,0,"+(0.30+di*0.03)+")");
+  ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+
+  const m=Math.min(W,H);
+  rockLayout.rocks.forEach(r=>{
+    const x=r.x*W, y=r.y*H, rad=r.r*m;
+    const rg2=ctx.createRadialGradient(x-rad*0.3,y-rad*0.3,rad*0.15, x,y,rad);
+    rg2.addColorStop(0,shadeColor(d.bg,22)); rg2.addColorStop(1,shadeColor(d.bg,-20));
+    ctx.fillStyle=rg2;
+    ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill();
+  });
+
+  ctx.strokeStyle="rgba(0,0,0,.30)"; ctx.lineWidth=Math.max(2,m*0.0035); ctx.lineCap="round";
+  rockLayout.cracks.forEach(c=>{
+    ctx.beginPath(); ctx.moveTo(c.x0*W,c.y0*H); ctx.quadraticCurveTo(c.x1*W,c.y1*H,c.x2*W,c.y2*H); ctx.stroke();
+  });
+
+  ctx.fillStyle=d.color;
+  rockLayout.veins.forEach(v=>{
+    const x=v.x*W, y=v.y*H, r=v.r*m;
+    ctx.save(); ctx.globalAlpha=0.30; ctx.translate(x,y); ctx.rotate(v.rot);
+    ctx.beginPath(); ctx.ellipse(0,0,r,r*0.4,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+// GAME: векторный кристалл руды (ромб + грань-блик), цвет — тема яруса. Заменяет emoji-руду.
+function drawGem(x,y,size,color){
+  ctx.save(); ctx.translate(x,y);
+  ctx.beginPath();
+  ctx.moveTo(0,-size); ctx.lineTo(size*0.72,-size*0.15); ctx.lineTo(size*0.42,size);
+  ctx.lineTo(-size*0.42,size); ctx.lineTo(-size*0.72,-size*0.15); ctx.closePath();
+  ctx.fillStyle=color; ctx.fill();
+  ctx.lineWidth=Math.max(1.2,size*0.14); ctx.strokeStyle=cssVar("--ink"); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,-size); ctx.lineTo(0,size*0.15); ctx.lineTo(size*0.42,size); ctx.closePath();
+  ctx.globalAlpha=0.22; ctx.fillStyle="#fff"; ctx.fill(); ctx.globalAlpha=1;
+  ctx.restore();
+}
+
+// GAME: векторный замочек для нераскрытых ярусов коллекции — заменяет emoji 🔒
+function drawLock(x,y,size){
+  ctx.save(); ctx.translate(x,y);
+  ctx.lineWidth=Math.max(1.4,size*0.18); ctx.strokeStyle=cssVar("--ink"); ctx.lineCap="round";
+  ctx.beginPath(); ctx.arc(0,-size*0.05,size*0.5,Math.PI,0,false); ctx.stroke();
+  ctx.fillStyle="#B9AC94";
+  roundRectPath(-size*0.62,-size*0.05,size*1.24,size*1.0,size*0.2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=cssVar("--ink");
+  ctx.beginPath(); ctx.arc(0,size*0.36,size*0.12,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// GAME: кот-шахтёр — векторная фигура (голова-круг, треугольные уши, овальное тело+хвост).
+// mini=true — упрощённый силуэт для помощников сбоку (без мордочки/усов).
+function drawCat(x,y,size,mini){
+  const ink=cssVar("--ink"), fur="#E8A96B", furIn="#F3C08A";
+  ctx.save(); ctx.translate(x,y);
+  const lw=Math.max(1.4,size*0.05);
+  ctx.lineJoin="round";
+  // хвост
+  ctx.beginPath();
+  ctx.moveTo(size*0.42,size*0.70);
+  ctx.bezierCurveTo(size*0.95,size*0.65, size*0.92,size*0.05, size*0.55,-size*0.05);
+  ctx.lineWidth=size*0.16; ctx.strokeStyle=fur; ctx.lineCap="round"; ctx.stroke();
+  ctx.lineWidth=lw; ctx.strokeStyle=ink; ctx.stroke();
+  // тело
+  ctx.beginPath(); ctx.ellipse(0,size*0.58,size*0.46,size*0.4,0,0,Math.PI*2);
+  ctx.fillStyle=fur; ctx.fill(); ctx.stroke();
+  // голова
+  ctx.beginPath(); ctx.arc(0,0,size*0.46,0,Math.PI*2);
+  ctx.fillStyle=fur; ctx.fill(); ctx.stroke();
+  // уши
+  [-1,1].forEach(s=>{
+    ctx.beginPath();
+    ctx.moveTo(s*size*0.30,-size*0.32); ctx.lineTo(s*size*0.52,-size*0.72); ctx.lineTo(s*size*0.06,-size*0.46);
+    ctx.closePath(); ctx.fillStyle=fur; ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(s*size*0.30,-size*0.38); ctx.lineTo(s*size*0.44,-size*0.60); ctx.lineTo(s*size*0.14,-size*0.46);
+    ctx.closePath(); ctx.fillStyle=furIn; ctx.fill();
+  });
+  if(!mini){
+    ctx.fillStyle=ink;
+    ctx.beginPath(); ctx.arc(-size*0.16,-size*0.04,size*0.055,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(size*0.16,-size*0.04,size*0.055,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-size*0.06,size*0.12); ctx.quadraticCurveTo(0,size*0.20,size*0.06,size*0.12);
+    ctx.lineWidth=size*0.045; ctx.stroke();
+    ctx.lineWidth=size*0.028;
+    [-1,1].forEach(s=>{ for(let i=0;i<2;i++){
+      ctx.beginPath(); ctx.moveTo(s*size*0.30,size*0.06+i*size*0.07); ctx.lineTo(s*size*0.62,size*0.02+i*size*0.09); ctx.stroke();
+    }});
+  }
+  ctx.fillStyle=fur;
+  ctx.beginPath(); ctx.ellipse(-size*0.24,size*0.92,size*0.14,size*0.11,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(size*0.24,size*0.92,size*0.14,size*0.11,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+// GAME: векторная кирка — деревянная рукоять + металлическая изогнутая головка. Заменяет emoji ⛏️.
+function drawPickaxe(x,y,size,angle){
+  const ink=cssVar("--ink");
+  ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
+  ctx.lineWidth=size*0.16; ctx.strokeStyle="#8C6239"; ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-size*1.05); ctx.stroke();
+  ctx.lineWidth=Math.max(1.2,size*0.045); ctx.strokeStyle=ink; ctx.stroke();
+  ctx.translate(0,-size*1.05);
+  ctx.beginPath();
+  ctx.moveTo(-size*0.55,0);
+  ctx.quadraticCurveTo(-size*0.18,-size*0.30,0,-size*0.06);
+  ctx.quadraticCurveTo(size*0.18,-size*0.30,size*0.55,0);
+  ctx.quadraticCurveTo(0,size*0.20,-size*0.55,0);
+  ctx.closePath();
+  ctx.fillStyle="#B9BEC7"; ctx.fill();
+  ctx.lineWidth=Math.max(1.2,size*0.05); ctx.strokeStyle=ink; ctx.stroke();
+  ctx.restore();
+}
+
+// GAME: слой руды летит от кота к вагонетке — векторный кристалл вместо emoji-частицы
 let particles=[]; let lastLayout=null;
 function spawnOreParticle(){
   if(!lastLayout) return;
   particles.push({ x0:lastLayout.catX, y0:lastLayout.catY, x1:lastLayout.cartX, y1:lastLayout.cartY,
-    t0:performance.now(), dur:550, emoji:curDepth().emoji });
+    t0:performance.now(), dur:550, color:curDepth().color });
 }
 function drawParticles(now){
   particles=particles.filter(p=>{
@@ -276,21 +435,17 @@ function drawParticles(now){
     if(t>=1) return false;
     const x=p.x0+(p.x1-p.x0)*t, y=p.y0+(p.y1-p.y0)*t - Math.sin(t*Math.PI)*36;
     ctx.globalAlpha=1-t*0.7;
-    ctx.font="22px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
-    ctx.fillText(p.emoji,x,y);
+    drawGem(x,y,11,p.color);
     ctx.globalAlpha=1;
     return true;
   });
 }
 
 function drawScene(){
-  const d=curDepth();
+  const d=curDepth(), di=depthIndex();
   const colW=Math.min(W,560), colX=(W-colW)/2;
 
-  // фон-градиент по текущей глубине
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0, d.bg); g.addColorStop(1, "#000000");
-  ctx.save(); ctx.globalAlpha=1; ctx.fillStyle=g; ctx.fillRect(0,0,W,H); ctx.restore();
+  drawBackground(d, di);
   ctx.fillStyle="rgba(0,0,0,.22)";
   ctx.fillRect(0,0,colX,H); ctx.fillRect(colX+colW,0,W-colX-colW,H);
 
@@ -313,37 +468,35 @@ function drawScene(){
   ctx.fillStyle=cssVar("--ink");
   ctx.beginPath(); ctx.arc(cx+cw*0.22,cy+ch+9,8,0,Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(cx+cw*0.78,cy+ch+9,8,0,Math.PI*2); ctx.fill();
+  drawGem(cx+cw*0.16, cy+ch/2, Math.min(cw,ch)*0.17, d.color);
   ctx.font="26px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.fillStyle="#fff"; ctx.fillText(d.emoji+" "+Math.floor(S.ore)+"/"+cartCap(), cx+cw/2, cy+ch/2);
+  ctx.fillStyle="#fff"; ctx.fillText(Math.floor(S.ore)+"/"+cartCap(), cx+cw*0.60, cy+ch/2);
 
-  // кот-шахтёр + кирка
+  // кот-шахтёр + кирка (векторная отрисовка)
   const catX=colX+colW*0.42, catY=H*0.66;
   const size=colW*0.30*(1+punch*0.14);
   ctx.save(); ctx.translate(catX,catY); ctx.rotate(-punch*0.10);
-  ctx.font=size+"px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.fillText("🐱",0,0);
+  drawCat(0,0,size*0.62,false);
   ctx.restore();
   ctx.save(); ctx.translate(catX+size*0.34, catY-size*0.12); ctx.rotate(0.55-punch*1.0);
-  ctx.font=(size*0.55)+"px sans-serif"; ctx.fillText("⛏️",0,0);
+  drawPickaxe(0,0,size*0.30,0);
   ctx.restore();
 
-  // помощники (пассивная добыча) — маленькие коты сбоку
+  // помощники (пассивная добыча) — маленькие векторные коты сбоку
   for(let i=0;i<Math.min(S.liftLvl,4);i++){
     const hx=colX+colW*(0.14+i*0.10), hy=H*0.74;
-    ctx.font=(colW*0.10)+"px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
-    ctx.fillText("🐈",hx,hy);
+    drawCat(hx,hy,colW*0.055,true);
   }
 
   lastLayout={ catX, catY, cartX:cx+cw/2, cartY:cy+ch/2 };
 
-  // коллекция руд снизу
+  // коллекция руд снизу — векторные кристаллы/замочки вместо emoji
   const n=DEPTHS.length, stripW=colW*0.94, sx=colX+(colW-stripW)/2, sy=H*0.92, cellW=stripW/n;
   for(let i=0;i<n;i++){
     const gx=sx+cellW*i+cellW/2;
-    const discovered=i<=depthIndex();
-    ctx.font="18px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
-    ctx.fillText(discovered?DEPTHS[i].emoji:"🔒", gx, sy);
-    ctx.font="800 11px Nunito, sans-serif"; ctx.fillStyle="rgba(255,255,255,.85)";
+    const discovered=i<=di;
+    if(discovered) drawGem(gx, sy, 9, DEPTHS[i].color); else drawLock(gx, sy, 8);
+    ctx.font="800 11px Nunito, sans-serif"; ctx.fillStyle="rgba(255,255,255,.85)"; ctx.textAlign="center"; ctx.textBaseline="middle";
     ctx.fillText(discovered?String(S.gems[i]||0):"", gx, sy+15);
   }
 }
@@ -382,6 +535,7 @@ function boot(raw){
   $("tapBtn").onclick=doTap;
   $("upBtn").onclick=doUpgrade;
   $("giftBtn").onclick=claimGift;
+  startMusic(); // GAME: глухой низкий эмбиент-луп под тему шахты, см. sfx.js
   if(giftAvailable()) setTimeout(()=>{ if(giftAvailable()) toast(T("giftReady")); },1200);
   requestAnimationFrame(frame);
 }
