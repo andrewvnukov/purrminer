@@ -479,48 +479,80 @@ function drawGate(x,y,w,h){
   ctx.restore();
 }
 
-// GAME: кот-шахтёр — векторная фигура (голова-круг, треугольные уши, овальное тело+хвост).
+// GAME: кот-шахтёр — векторная фигура в стиле референса (толстый контур, пятно на животе,
+// компактная сидячая поза, толстый загнутый хвост лежит рядом с телом).
 // mining=0..1 фаза цикла добычи (лёгкое покачивание — живая, не статичная поза)
+// Вертикальный охват фигуры (в единицах size, от anchor y): от CAT_TOP (кончики ушей)
+// до CAT_BOT (низ передних лапок) — используется в catFit(), чтобы кот не вылезал за штольню.
+const CAT_TOP=-0.82, CAT_BOT=1.15, CAT_WOBBLE=0.05;
 function drawCat(x,y,size,mining){
-  const ink=cssVar("--ink"), fur="#E8A96B", furIn="#F3C08A";
-  const bob = mining!=null ? Math.sin(mining*Math.PI*2)*size*0.05 : 0;
+  const ink=cssVar("--ink"), fur="#E8A96B", belly="#FBE6C6", earIn="#F6A3B5";
+  const bob = mining!=null ? Math.sin(mining*Math.PI*2)*size*CAT_WOBBLE : 0;
   ctx.save(); ctx.translate(x,y+bob);
-  const lw=Math.max(1.3,size*0.05);
-  ctx.lineJoin="round";
-  // хвост
+  ctx.lineJoin="round"; ctx.lineCap="round";
+  const lw=Math.max(1.8,size*0.09); // толстый чернильный контур — ближе к референсу
+
+  // хвост — толстый, одной плавной дугой загнут и лежит рядом с телом
   ctx.beginPath();
-  ctx.moveTo(size*0.42,size*0.70);
-  ctx.bezierCurveTo(size*0.95,size*0.65, size*0.92,size*0.05, size*0.55,-size*0.05);
-  ctx.lineWidth=size*0.16; ctx.strokeStyle=fur; ctx.lineCap="round"; ctx.stroke();
-  ctx.lineWidth=lw; ctx.strokeStyle=ink; ctx.stroke();
-  // тело
-  ctx.beginPath(); ctx.ellipse(0,size*0.58,size*0.46,size*0.4,0,0,Math.PI*2);
+  ctx.moveTo(size*0.32,size*0.82);
+  ctx.bezierCurveTo(size*0.88,size*0.90, size*1.08,size*0.34, size*0.72,-size*0.02);
+  ctx.bezierCurveTo(size*0.56,-size*0.18, size*0.36,-size*0.04, size*0.40,size*0.16);
+  ctx.bezierCurveTo(size*0.62,size*0.20, size*0.66,size*0.60, size*0.32,size*0.82);
+  ctx.closePath();
+  ctx.fillStyle=fur; ctx.fill(); ctx.lineWidth=lw; ctx.strokeStyle=ink; ctx.stroke();
+
+  // тело — компактный овал (сидячая поза)
+  ctx.beginPath(); ctx.ellipse(0,size*0.52,size*0.50,size*0.44,0,0,Math.PI*2);
   ctx.fillStyle=fur; ctx.fill(); ctx.stroke();
-  // голова
-  ctx.beginPath(); ctx.arc(0,0,size*0.46,0,Math.PI*2);
-  ctx.fillStyle=fur; ctx.fill(); ctx.stroke();
-  // уши
+
+  // светлое пятно на животе/груди — отдельная форма поверх тела
+  ctx.beginPath(); ctx.ellipse(0,size*0.60,size*0.25,size*0.33,0,0,Math.PI*2);
+  ctx.fillStyle=belly; ctx.fill();
+
+  // голова — крупнее относительно тела, как в референсе
+  ctx.beginPath(); ctx.arc(0,0,size*0.47,0,Math.PI*2);
+  ctx.fillStyle=fur; ctx.fill(); ctx.strokeStyle=ink; ctx.lineWidth=lw; ctx.stroke();
+
+  // уши — треугольники со светлым/розовым мехом внутри
   [-1,1].forEach(s=>{
     ctx.beginPath();
-    ctx.moveTo(s*size*0.30,-size*0.32); ctx.lineTo(s*size*0.52,-size*0.72); ctx.lineTo(s*size*0.06,-size*0.46);
-    ctx.closePath(); ctx.fillStyle=fur; ctx.fill(); ctx.stroke();
+    ctx.moveTo(s*size*0.30,-size*0.30); ctx.lineTo(s*size*0.55,-size*0.76); ctx.lineTo(s*size*0.05,-size*0.44);
+    ctx.closePath(); ctx.fillStyle=fur; ctx.fill(); ctx.lineWidth=lw; ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(s*size*0.30,-size*0.38); ctx.lineTo(s*size*0.44,-size*0.60); ctx.lineTo(s*size*0.14,-size*0.46);
-    ctx.closePath(); ctx.fillStyle=furIn; ctx.fill();
+    ctx.moveTo(s*size*0.30,-size*0.36); ctx.lineTo(s*size*0.47,-size*0.62); ctx.lineTo(s*size*0.15,-size*0.44);
+    ctx.closePath(); ctx.fillStyle=earIn; ctx.fill();
   });
+
+  // мордочка: глаза, розовый нос, рот, усы
   ctx.fillStyle=ink;
-  ctx.beginPath(); ctx.arc(-size*0.16,-size*0.04,size*0.055,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(size*0.16,-size*0.04,size*0.055,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(-size*0.06,size*0.12); ctx.quadraticCurveTo(0,size*0.20,size*0.06,size*0.12);
-  ctx.lineWidth=size*0.045; ctx.stroke();
-  ctx.lineWidth=size*0.028;
+  ctx.beginPath(); ctx.arc(-size*0.17,-size*0.02,size*0.06,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(size*0.17,-size*0.02,size*0.06,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#E8879A";
+  ctx.beginPath(); ctx.moveTo(-size*0.05,size*0.13); ctx.lineTo(size*0.05,size*0.13); ctx.lineTo(0,size*0.20); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle=ink; ctx.lineWidth=size*0.05;
+  ctx.beginPath(); ctx.moveTo(0,size*0.20); ctx.quadraticCurveTo(0,size*0.27,size*0.08,size*0.25); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,size*0.20); ctx.quadraticCurveTo(0,size*0.27,-size*0.08,size*0.25); ctx.stroke();
+  ctx.lineWidth=size*0.032;
   [-1,1].forEach(s=>{ for(let i=0;i<2;i++){
-    ctx.beginPath(); ctx.moveTo(s*size*0.30,size*0.06+i*size*0.07); ctx.lineTo(s*size*0.62,size*0.02+i*size*0.09); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s*size*0.32,size*0.05+i*size*0.07); ctx.lineTo(s*size*0.66,size*0.01+i*size*0.09); ctx.stroke();
   }});
-  ctx.fillStyle=fur;
-  ctx.beginPath(); ctx.ellipse(-size*0.24,size*0.92,size*0.14,size*0.11,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
-  ctx.beginPath(); ctx.ellipse(size*0.24,size*0.92,size*0.14,size*0.11,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+  // передние лапки — компактно, видны спереди тела, не растопырены
+  ctx.fillStyle=fur; ctx.strokeStyle=ink; ctx.lineWidth=lw*0.85;
+  ctx.beginPath(); ctx.ellipse(-size*0.19,size*0.96,size*0.14,size*0.19,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(size*0.19,size*0.96,size*0.14,size*0.19,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
   ctx.restore();
+}
+
+// GAME: подбирает масштаб и точку опоры кота так, чтобы вся фигура (с учётом покачивания
+// при добыче/анимации тапа амплитудой CAT_WOBBLE) гарантированно помещалась внутри полосы
+// высотой rowH — не вылезала ни сверху, ни снизу за её границы.
+function catFit(rowH){
+  const pad=0.05; // отступ от края полосы, доля rowH
+  const span=(CAT_BOT-CAT_TOP)+2*CAT_WOBBLE;
+  const size=rowH*(1-2*pad)/span;
+  const anchorOff=pad*rowH+CAT_WOBBLE*size-CAT_TOP*size;
+  return {size,anchorOff};
 }
 
 // GAME: векторная кирка — заменяет emoji ⛏️
@@ -682,19 +714,20 @@ function drawScene(now){
 
     if(hasCat){
       const mining=((now/1000*(0.6+catRateU()*0.25))+i*0.37)%1;
-      const size=r.h*1.05;
-      drawCat(r.catX, r.cy+r.h*0.30, size*0.5, mining);
-      const swing=0.5+Math.sin(mining*Math.PI*2)*0.9;
-      ctx.save(); ctx.translate(r.catX+size*0.30, r.cy+r.h*0.06); ctx.rotate(swing);
-      drawPickaxe(0,0,size*0.24,0);
+      const fit=catFit(r.h), anchorY=r.y+fit.anchorOff;
+      drawCat(r.catX, anchorY, fit.size, mining);
+      // кирка растёт из точки между передними лапками — читается как «держит», а не висит рядом
+      const swing=0.55+Math.sin(mining*Math.PI*2)*0.35;
+      ctx.save(); ctx.translate(r.catX+fit.size*0.02, anchorY+fit.size*0.90); ctx.rotate(swing);
+      drawPickaxe(0,0,fit.size*0.68,0);
       ctx.restore();
     } else if(i===S.selected){
-      const size=r.h*1.05*(1+punch*0.16);
-      ctx.save(); ctx.translate(r.catX, r.cy+r.h*0.30); ctx.rotate(-punch*0.10);
-      drawCat(0,0,size*0.5,null);
+      const fit=catFit(r.h), anchorY=r.y+fit.anchorOff;
+      ctx.save(); ctx.translate(r.catX, anchorY-punch*fit.size*CAT_WOBBLE); ctx.rotate(-punch*0.10);
+      drawCat(0,0,fit.size,null);
       ctx.restore();
-      ctx.save(); ctx.translate(r.catX+size*0.30, r.cy+r.h*0.06-punch*4); ctx.rotate(0.55-punch*1.0);
-      drawPickaxe(0,0,size*0.24,0);
+      ctx.save(); ctx.translate(r.catX+fit.size*0.02, anchorY+fit.size*0.90-punch*fit.size*0.08); ctx.rotate(0.85-punch*0.9);
+      drawPickaxe(0,0,fit.size*0.68,0);
       ctx.restore();
     }
   });
